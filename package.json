@@ -1,0 +1,24 @@
+{
+  "name": "puretext",
+  "version": "2.0.0",
+  "description": "AI text humanizer — defeats AI detectors using NLP + Datamuse API",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "compromise": "^14.14.0",
+    "axios": "^1.6.0",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

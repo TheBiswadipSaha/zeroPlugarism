@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PureText — Plagiarism-Free Rewriter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #08090d;
+      --surface:   #0e0f15;
+      --card:      #14151d;
+      --card2:     #1a1b25;
+      --border:    rgba(255,255,255,0.07);
+      --border2:   rgba(255,255,255,0.12);
+      --accent:    #00e5a0;
+      --accent-dim:#007a56;
+      --accent2:   #5b8df6;
+      --text:      #e6e8f0;
+      --muted:     #7a7d92;
+      --danger:    #ff5470;
+      --warn:      #ffb547;
+      --success:   #00e5a0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Background grid ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,160,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,160,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Glow orbs ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(0,229,160,0.055) 0%, transparent 65%);
+      top: -200px; right: -100px;
+    }
+    .orb-2 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(91,141,246,0.05) 0%, transparent 65%);
+      bottom: -150px; left: -100px;
+    }
+
+    /* ── Layout ── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── Navbar ── */
+    nav {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .logo-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    .logo-name span { color: var(--accent); }
+
+    .nav-badges { display: flex; gap: 8px; }
+    .pill {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      border: 1px solid;
+    }
+    .pill-green {
+      border-color: rgba(0,229,160,0.3);
+      background: rgba(0,229,160,0.08);
+      color: var(--accent);
+    }
+    .pill-blue {
+      border-color: rgba(91,141,246,0.3);
+      background: rgba(91,141,246,0.08);
+      color: var(--accent2);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 48px 0 36px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.1s forwards;
+    }
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      color: var(--text);
+      margin-bottom: 14px;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.2s forwards;
+    }
+    .hero h1 .hl {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 500px;
+      margin: 0 auto 28px;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.3s forwards;
+    }
+
+    .tech-stack {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.4s forwards;
+    }
+    .tech-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tech-chip .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .tech-chip .dot-blue { background: var(--accent2); }
+
+    /* ── Main card ── */
+    .main-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.5s forwards;
+    }
+
+    /* ── Settings bar ── */
+    .settings-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .setting-block {
+      background: var(--card);
+      padding: 16px 20px;
+    }
+    .setting-block label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .setting-block select {
+      width: 100%;
+      background: var(--card2);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%237a7d92' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+    .setting-block select:focus {
+      border-color: var(--accent-dim);
+    }
+
+    .slider-wrap { display: flex; align-items: center; gap: 10px; }
+    .slider-wrap input[type=range] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--card2);
+      outline: none;
+      cursor: pointer;
+    }
+    .slider-wrap input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--card);
+    }
+    .slider-val {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      min-width: 38px;
+      text-align: right;
+    }
+
+    /* ── Editor area ── */
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 720px) {
+      .editor-grid { grid-template-columns: 1fr; }
+      .settings-bar { grid-template-columns: 1fr; }
+    }
+
+    .editor-pane {
+      position: relative;
+      border-right: 1px solid var(--border);
+    }
+    .editor-pane:last-child { border-right: none; }
+
+    .pane-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--card2);
+    }
+    .pane-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pane-title .indicator {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border2);
+    }
+    .pane-title .indicator.active { background: var(--accent); }
+
+    .word-count {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 320px;
+      background: transparent;
+      color: var(--text);
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.75;
+      padding: 20px;
+      caret-color: var(--accent);
+    }
+    textarea::placeholder { color: var(--muted); opacity: 0.6; }
+
+    .output-area {
+      min-height: 320px;
+      padding: 20px;
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .output-placeholder {
+      color: var(--muted);
+      opacity: 0.4;
+      font-style: italic;
+    }
+
+    /* ── Action bar ── */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--card2);
+      flex-wrap: wrap;
+    }
+
+    .btn-rewrite {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #08090d;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 24px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-rewrite:hover { background: #00ffb0; transform: translateY(-1px); }
+    .btn-rewrite:active { transform: translateY(0); }
+    .btn-rewrite:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-ghost:hover { border-color: var(--border2); color: var(--text); background: var(--card2); }
+    .btn-ghost:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .spacer { flex: 1; }
+
+    .status-pill {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--card);
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-pill.show { display: flex; }
+    .status-pill.processing { border-color: rgba(255,181,71,0.3); color: var(--warn); background: rgba(255,181,71,0.07); }
+    .status-pill.success { border-color: rgba(0,229,160,0.3); color: var(--success); background: rgba(0,229,160,0.07); }
+    .status-pill.error { border-color: rgba(255,84,112,0.3); color: var(--danger); background: rgba(255,84,112,0.07); }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,181,71,0.2);
+      border-top-color: var(--warn);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Progress bar ── */
+    .progress-track {
+      height: 2px;
+      background: var(--border);
+      overflow: hidden;
+      display: none;
+    }
+    .progress-track.show { display: block; }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: none;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-top: 1px solid var(--border);
+    }
+    .stats-bar.show { display: grid; }
+    .stat-block {
+      background: var(--card);
+      padding: 14px 20px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+      display: block;
+      line-height: 1.2;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* ── Footer info card ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.7s forwards;
+    }
+    @media (max-width: 720px) { .info-grid { grid-template-columns: 1fr; } }
+
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .info-card-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .ic-green { background: rgba(0,229,160,0.1); }
+    .ic-blue  { background: rgba(91,141,246,0.1); }
+    .ic-warn  { background: rgba(255,181,71,0.1); }
+    .info-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .info-card p {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    /* ── Copy flash ── */
+    @keyframes flash {
+      0%   { background: rgba(0,229,160,0.12); }
+      100% { background: transparent; }
+    }
+    .flash { animation: flash 0.4s ease; }
+  </style>
+</head>
+<body>
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="/" class="logo">
+      <div class="logo-icon">✦</div>
+      <span class="logo-name">Pure<span>Text</span></span>
+    </a>
+    <div class="nav-badges">
+      <span class="pill pill-green">100% Free</span>
+      <span class="pill pill-blue">No API Key</span>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-eyebrow">Plagiarism-Free Rewriter</div>
+      <h1>Rewrite any text.<br /><span class="hl">Zero plagiarism.</span></h1>
+      <p>Powered by open-source NLP — no subscriptions, no API keys, no limits.</p>
+      <div class="tech-stack">
+        <div class="tech-chip"><span class="dot"></span>compromise.js NLP</div>
+        <div class="tech-chip"><span class="dot"></span>Datamuse API (free)</div>
+        <div class="tech-chip"><span class="dot dot-blue"></span>natural.js</div>
+        <div class="tech-chip"><span class="dot dot-blue"></span>WordNet synonyms</div>
+        <div class="tech-chip"><span class="dot"></span>Express backend</div>
+      </div>
+    </div>
+
+    <!-- Main card -->
+    <div class="main-card">
+
+      <!-- Settings bar -->
+      <div class="settings-bar">
+        <div class="setting-block">
+          <label>Rewrite Mode</label>
+          <select id="mode">
+            <option value="standard">Standard — paraphrase + synonyms</option>
+            <option value="deep">Deep — restructure + tense shift</option>
+            <option value="formal">Formal — academic language</option>
+            <option value="simple">Simple — plain language</option>
+          </select>
+        </div>
+        <div class="setting-block">
+          <label>Synonym Intensity — <span id="sint-label" style="color:var(--accent)">60%</span></label>
+          <div class="slider-wrap">
+            <input type="range" id="intensity" min="10" max="90" value="60" step="5" />
+            <span class="slider-val" id="sint-val">60%</span>
+          </div>
+        </div>
+        <div class="setting-block">
+          <label>Document Mode</label>
+          <select id="doc-mode">
+            <option value="single">Single paragraph / short text</option>
+            <option value="chunks">Long document (streaming)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Editor grid -->
+      <div class="editor-grid">
+
+        <!-- Input pane -->
+        <div class="editor-pane">
+          <div class="pane-header">
+            <div class="pane-title">
+              <span class="indicator active"></span>
+              Input Text
+            </div>
+            <span class="word-count" id="input-wc">0 words</span>
+          </div>
+          <textarea
+            id="inputText"
+            placeholder="Paste your paragraph, essay, or full document here…
+
+Supports any length — short paragraphs, research papers, or entire documents."
+          ></textarea>
+        </div>
+
+        <!-- Output pane -->
+        <div class="editor-pane">
+          <div class="pane-header">
+            <div class="pane-title">
+              <span class="indicator" id="output-indicator"></span>
+              Rewritten Output
+            </div>
+            <span class="word-count" id="output-wc">0 words</span>
+          </div>
+          <div class="output-area" id="outputArea">
+            <span class="output-placeholder">Your rewritten, plagiarism-free text will appear here…</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Progress track -->
+      <div class="progress-track" id="progressTrack">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+      <!-- Action bar -->
+      <div class="action-bar">
+        <button class="btn-rewrite" id="rewriteBtn" onclick="handleRewrite()">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <path d="M1.5 7.5a6 6 0 1 0 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M1.5 4v3.5H5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Rewrite Text
+        </button>
+
+        <button class="btn-ghost" onclick="loadSample()">Load Sample</button>
+        <button class="btn-ghost" onclick="clearAll()">Clear</button>
+
+        <div class="spacer"></div>
+
+        <div class="status-pill" id="statusPill">
+          <span class="spinner" id="statusSpinner" style="display:none"></span>
+          <span id="statusText">Ready</span>
+        </div>
+
+        <button class="btn-ghost" id="copyBtn" onclick="copyOutput()" disabled>Copy Output</button>
+      </div>
+
+      <!-- Stats bar -->
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-block">
+          <span class="stat-num" id="st-words">—</span>
+          <span class="stat-label">Words Changed</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-num" id="st-syns">—</span>
+          <span class="stat-label">Synonyms Applied</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-num" id="st-sents">—</span>
+          <span class="stat-label">Sentences Rewritten</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-num" id="st-uniq">—%</span>
+          <span class="stat-label">Est. Uniqueness</span>
+        </div>
+      </div>
+
+    </div>
+    <!-- /main-card -->
+
+    <!-- Info cards -->
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-icon ic-green">🔄</div>
+        <h3>4-Layer Rewriting</h3>
+        <p>NLP restructuring → transition replacement → synonym substitution → sentence splitting. Every layer is free and open-source.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon ic-blue">⚡</div>
+        <h3>Datamuse + WordNet</h3>
+        <p>Context-aware synonyms from Datamuse (free public API, no key) backed by Princeton's WordNet lexical database and Google Ngrams.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon ic-warn">📄</div>
+        <h3>Unlimited Length</h3>
+        <p>Use Streaming mode for long documents. Each paragraph is processed independently and streamed back in real-time.</p>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <script>
+    // ─── Utility ──────────────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+
+    function wordCount(text) {
+      return (text.match(/\b[a-zA-Z]+\b/g) || []).length;
+    }
+
+    function setStatus(msg, type = 'normal') {
+      const pill = $('statusPill');
+      const spinner = $('statusSpinner');
+      const txt = $('statusText');
+
+      pill.className = 'status-pill show ' + (type !== 'normal' ? type : '');
+      spinner.style.display = type === 'processing' ? 'block' : 'none';
+      txt.textContent = msg;
+    }
+
+    function hideStatus() {
+      $('statusPill').classList.remove('show');
+    }
+
+    function setProgress(pct) {
+      const track = $('progressTrack');
+      const fill = $('progressFill');
+      track.classList.add('show');
+      fill.style.width = pct + '%';
+      if (pct >= 100) {
+        setTimeout(() => {
+          track.classList.remove('show');
+          fill.style.width = '0%';
+        }, 700);
+      }
+    }
+
+    function showStats(stats) {
+      $('st-words').textContent = stats.wordsChanged ?? '—';
+      $('st-syns').textContent = stats.synsApplied ?? '—';
+      $('st-sents').textContent = stats.sentencesRewritten ?? '—';
+      $('st-uniq').textContent = (stats.estimatedUniqueness ?? '—') + '%';
+      $('statsBar').classList.add('show');
+    }
+
+    function setOutput(text) {
+      const area = $('outputArea');
+      area.textContent = text;
+      area.classList.add('flash');
+      setTimeout(() => area.classList.remove('flash'), 400);
+      $('output-indicator').classList.add('active');
+      $('output-wc').textContent = wordCount(text) + ' words';
+      $('copyBtn').disabled = false;
+    }
+
+    // ─── Input word count ─────────────────────────────────────────────────────
+    $('inputText').addEventListener('input', () => {
+      const wc = wordCount($('inputText').value);
+      $('input-wc').textContent = wc + ' words';
+    });
+
+    // ─── Intensity slider ─────────────────────────────────────────────────────
+    $('intensity').addEventListener('input', function() {
+      $('sint-label').textContent = this.value + '%';
+      $('sint-val').textContent = this.value + '%';
+    });
+
+    // ─── Sample text ──────────────────────────────────────────────────────────
+    const SAMPLE = `Machine learning is a subset of artificial intelligence that enables computers to learn from data without being explicitly programmed. The algorithms improve their performance through experience and can make predictions on new data.
+
+Deep learning, a further subset of machine learning, uses neural networks with many layers to model highly complex patterns. These networks require large amounts of training data and significant computational resources to train effectively.
+
+Today, machine learning powers many real-world applications including recommendation systems, image recognition, spam detection, and natural language processing. Businesses use these technologies to gain competitive advantages and improve customer experiences.
+
+The field is rapidly evolving, with new techniques and architectures being developed regularly. Researchers continue to push the boundaries of what is possible with artificial intelligence and machine learning.`;
+
+    function loadSample() {
+      $('inputText').value = SAMPLE;
+      $('input-wc').textContent = wordCount(SAMPLE) + ' words';
+    }
+
+    function clearAll() {
+      $('inputText').value = '';
+      $('outputArea').innerHTML = '<span class="output-placeholder">Your rewritten, plagiarism-free text will appear here…</span>';
+      $('output-indicator').classList.remove('active');
+      $('input-wc').textContent = '0 words';
+      $('output-wc').textContent = '0 words';
+      $('statsBar').classList.remove('show');
+      $('copyBtn').disabled = true;
+      hideStatus();
+    }
+
+    // ─── Copy output ──────────────────────────────────────────────────────────
+    function copyOutput() {
+      const text = $('outputArea').textContent;
+      if (!text || text.includes('will appear here')) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = $('copyBtn');
+        const orig = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1800);
+      });
+    }
+
+    // ─── Main rewrite handler ─────────────────────────────────────────────────
+    async function handleRewrite() {
+      const text = $('inputText').value.trim();
+      if (!text) { setStatus('Please enter some text first.', 'error'); return; }
+      if (text.length < 10) { setStatus('Text too short — enter at least 10 characters.', 'error'); return; }
+
+      const mode = $('mode').value;
+      const intensity = parseInt($('intensity').value, 10);
+      const docMode = $('doc-mode').value;
+
+      $('rewriteBtn').disabled = true;
+      $('statsBar').classList.remove('show');
+
+      if (docMode === 'chunks') {
+        await rewriteChunks(text, mode, intensity);
+      } else {
+        await rewriteSingle(text, mode, intensity);
+      }
+
+      $('rewriteBtn').disabled = false;
+    }
+
+    // ─── Single rewrite ───────────────────────────────────────────────────────
+    async function rewriteSingle(text, mode, intensity) {
+      setStatus('Rewriting…', 'processing');
+      setProgress(20);
+
+      try {
+        const res = await fetch('/api/rewrite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, mode, intensity }),
+        });
+
+        setProgress(80);
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Request failed');
+        }
+
+        const data = await res.json();
+        setProgress(100);
+        setOutput(data.output);
+        showStats(data.stats);
+        setStatus('Done — text rewritten successfully.', 'success');
+        setTimeout(hideStatus, 4000);
+      } catch (err) {
+        setProgress(100);
+        setStatus(err.message || 'Something went wrong.', 'error');
+      }
+    }
+
+    // ─── Streaming chunks rewrite (for long documents) ────────────────────────
+    async function rewriteChunks(text, mode, intensity) {
+      setStatus('Processing document…', 'processing');
+
+      const outputParts = [];
+      let total = 0;
+
+      try {
+        const res = await fetch('/api/rewrite/chunks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, mode, intensity }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Request failed');
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            try {
+              const event = JSON.parse(line.slice(6));
+
+              if (event.type === 'progress') {
+                total = event.total;
+                outputParts[event.index] = event.paragraph;
+                const pct = Math.round(((event.index + 1) / total) * 95);
+                setProgress(pct);
+                setStatus(`Processing paragraph ${event.index + 1} of ${total}…`, 'processing');
+                // Live update output as paragraphs stream in
+                $('outputArea').textContent = outputParts.filter(Boolean).join('\n\n');
+                $('output-wc').textContent = wordCount($('outputArea').textContent) + ' words';
+              }
+
+              if (event.type === 'done') {
+                setProgress(100);
+                setOutput(event.output);
+                showStats(event.stats);
+                setStatus('Document rewritten successfully.', 'success');
+                setTimeout(hideStatus, 4000);
+              }
+            } catch (_) {}
+          }
+        }
+      } catch (err) {
+        setProgress(100);
+        setStatus(err.message || 'Something went wrong.', 'error');
+      }
+    }
+
+    // ─── Enter key shortcut ───────────────────────────────────────────────────
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        if (!$('rewriteBtn').disabled) handleRewrite();
+      }
+    });
+  </script>
+</body>
+</html>
