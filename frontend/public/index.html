@@ -711,6 +711,7 @@ Supports any length — short paragraphs, research papers, or entire documents."
   <script>
     // ─── Utility ──────────────────────────────────────────────────────────────
     const $ = id => document.getElementById(id);
+const API = "https://zeroplugarism.onrender.com";
 
     function wordCount(text) {
       return (text.match(/\b[a-zA-Z]+\b/g) || []).length;
@@ -838,7 +839,7 @@ The field is rapidly evolving, with new techniques and architectures being devel
       setProgress(20);
 
       try {
-        const res = await fetch('/api/rewrite', {
+        const res = await fetch(API + '/api/rewrite', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, mode, intensity }),
@@ -871,7 +872,7 @@ The field is rapidly evolving, with new techniques and architectures being devel
       let total = 0;
 
       try {
-        const res = await fetch('/api/rewrite/chunks', {
+        const res = await fetch(API + '/api/rewrite/chunks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, mode, intensity }),
